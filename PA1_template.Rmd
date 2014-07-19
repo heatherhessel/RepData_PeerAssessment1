@@ -1,4 +1,4 @@
-#Reproducible Research: Peer Assessment 1
+##Reproducible Research: Peer Assessment 1
 ========================================================
 
 This document contains code and outcomes for the first Peer Assessment assignment for the course Reproducible Research. The data used is from an activity monitoring device.
@@ -9,6 +9,7 @@ fullData <- read.csv("activity.csv", stringsAsFactors=F)
 install.packages("date")
 library(date)
 fullData$date <- as.Date(fullData$date, format = "%Y-%m-%d")
+options("scipen" = 100)
 ```
 
 ## What is mean total number of steps taken per day?
@@ -20,20 +21,20 @@ myMean <- mean(stepsByDate, na.rm=TRUE)
 myMedian <- median(stepsByDate, na.rm=TRUE)
 
 ```
-The mean total number of steps per day is `r myMean`
-The median number of steps per day is `r myMedian`
+The mean total number of steps per day is `r myMean`.
+The median number of steps per day is `r myMedian`.
 
 ## What is the average daily activity pattern?
 ``` {r dailyActivity}
 stepsByInterval <- aggregate(steps~interval, data=fullData, mean, na.rm=TRUE)
-plot(stepsByInterval$steps~stepsByInterval$interval, type="l", ylab="Daily Average Steps", xlab="Interval")
+plot(stepsByInterval$steps~stepsByInterval$interval, type="l", xlab="Interval", ylab="Daily Average Steps")
 mostSteps <- stepsByInterval$interval[which.max(stepsByInterval$steps)]
 ```
-The interval with the maximum number of steps is `r mostSteps`
+The 5-minute interval with the maximum number of steps is `r mostSteps`.
 
 ## Imputing missing values
 ```{r imputeMissing}
-totalNA <- sum(is.na(fullData$steps)
+totalNon <- sum(is.na(fullData$steps))
               
 imputedDF <- fullData
 mySteps <- mean(stepsByInterval$steps)
@@ -46,13 +47,30 @@ imputedMean <- mean(imputedStepsByDate, na.rm=TRUE)
 imputedMedian <- median(imputedStepsByDate, na.rm=TRUE)
 
 ```
-The mean total number of steps per day is `r imputedMean`
-The median number of steps per day is `r imputedMedian`
+The mean total number of steps per day is `r imputedMean`.
+The median number of steps per day is now `r imputedMedian` too.
 The values of the original and imputed data do not differ much. There is not much impact.
 
 ## Are there differences in activity patterns between weekdays and weekends?
 ```{r weekdayWeekend}
-fullData$dayName = weekdays(fullData$date)
-fullData$dayType <- if(fullData$dayName %in% c("Saturday","Sunday")) {"weekend"} else {"weekday"}
+imputedDF$dayName <- weekdays(imputedDF$date)
+imputedDF$dayType <- ifelse(imputedDF$dayName %in% c("Saturday","Sunday"),"weekend","weekday")
+
+
+imputedStepsByIntervalWend <- aggregate(steps~interval, data=imputedDF[imputedDF$dayType == "weekend",], mean, na.rm=TRUE)
+imputedStepsByIntervalWday <- aggregate(steps~interval, data=imputedDF[imputedDF$dayType == "weekday",], mean, na.rm=TRUE)
+
+par(mfrow=c(2,1),mar=c(2,2,2,2), oma=c(4, 4, 2, 2), las=1)
+plot(imputedStepsByIntervalWend$steps~imputedStepsByIntervalWend$interval, type="l", ylab="", main="Weekend", xlab="", ylim=c(0,200))
+plot(imputedStepsByIntervalWday$steps~imputedStepsByIntervalWday$interval, type="l", main="Weekday", ylab="")
+mtext("Number of Steps", 2, 3, outer=TRUE, las=0)
+mtext("Interval", 1, 3, outer=TRUE)
+
 ```
-Unfortunately, I do not have time to finish this last question because the assignment is due and I need to get it pushed to github.
+
+Yes, there are definitely differences between weekends and weekdays.
+
+
+
+
+
